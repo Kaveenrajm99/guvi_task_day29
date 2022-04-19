@@ -1,19 +1,79 @@
-import React from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Link } from "react-router-dom"
-
+import UserContext from './UserContext'
+import axios from 'axios'
+import swal from 'sweetalert';
 
 const Users = () => {
+
+
+    const [userData, setUsersData] = useState([])
+
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                let users = await axios.get("https://625bfd1cc9e78a8cb9b248ed.mockapi.io/admin/users")
+                setUsersData(users.data)
+            } catch {
+                console.log("error")
+            }
+        }
+        fetchData();
+
+    }, [])
+
+    // fuction for delete data from table
+    const deleteUser = (id) => {
+        //prompt message for delete data
+        swal({
+            title: "This Data wants to delete",
+            text: "Once deleted, you will not be able to recover this imaginary file!",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        }).then((willDelete) => {
+            if (willDelete) {
+                axios
+                    .delete(`https://625bfd1cc9e78a8cb9b248ed.mockapi.io/admin/users/${id}`)
+                    .then(() => {
+                        getData();
+                    });
+
+                swal(" Your file has been deleted!", {
+                    icon: "success",
+                });
+            } else {
+                swal("Hope to safe!");
+            }
+        });
+    };
+
+    const getData = () => {
+        axios
+            .get(`https://625bfd1cc9e78a8cb9b248ed.mockapi.io/admin/users`)
+            .then((getData) => {
+                setUsersData(getData.data);
+            });
+    };
+
+
+
+
+
+    const userContext = useContext(UserContext)
+
     return (
         <><div className="container-fluid">
 
             {/* <!-- Page Heading --> */}
             <h1 className="h3 mb-0 text-gray-800">Tables</h1>
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <p className="mb-4">DataTables is a third party plugin that is used to generate the demo table below.<br/>
+                <p className="mb-4">DataTables is a third party plugin that is used to generate the demo table below.<br />
                     For more information about DataTables, please visit the <a target="_blank"
-                     href="https://datatables.net">official DataTables documentation</a>.
+                        href="https://datatables.net">official DataTables documentation</a>.
                 </p>
-                <Link to={"/users-create"}  type="button" className="d-none d-sm-inline-block btn btn-xs btn-primary shadow-sm"> Create User</Link>
+                <Link to={"/userscreate"} type="button" className="d-none d-sm-inline-block btn btn-xs btn-primary shadow-sm"> Create User</Link>
             </div>
 
 
@@ -27,11 +87,11 @@ const Users = () => {
                         <table className="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
+                                    <th>Id</th>
                                     <th>Name</th>
                                     <th>Position</th>
                                     <th>Office</th>
                                     <th>Age</th>
-                                    <th>Start date</th>
                                     <th>Salary</th>
                                     <th className='text-center'>CRED</th>
 
@@ -39,38 +99,26 @@ const Users = () => {
                             </thead>
 
                             <tbody>
-                                <tr>
-                                    <td>Tiger Nixon</td>
-                                    <td>System Architect</td>
-                                    <td>Edinburgh</td>
-                                    <td>61</td>
-                                    <td>2011/04/25</td>
-                                    <td>$320,800</td>
-                                    <td>
-                                        <div className='text-center'>
-                                            <Link to={"/user-view/:id"} type="button" className="btn btn-warning m-1">View</Link>
-                                            <button type="button" className="btn btn-primary m-1">Edit</button>
-                                            <button type="button" className="btn btn-danger m-1">Delete</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Tiger Nixon</td>
-                                    <td>System Architect</td>
-                                    <td>Edinburgh</td>
-                                    <td>61</td>
-                                    <td>2011/04/25</td>
-                                    <td>$320,800</td>
-                                    <td>
-                                        <div className='text-center'>
-                                            <Link to={"/user-view/:id"} type="button" className="btn btn-warning m-1">View</Link>
-                                            <button type="button" className="btn btn-primary m-1">Edit</button>
-                                            <button type="button" className="btn btn-danger m-1">Delete</button>
-                                        </div>
-                                    </td>
-                                </tr>
 
-
+                                {
+                                    userData.map((data) => {
+                                        return <tr>
+                                            <td>{data.id}</td>
+                                            <td>{data.Name}</td>
+                                            <td>{data.Position}</td>
+                                            <td>{data.Office}</td>
+                                            <td>{data.Age}</td>
+                                            <td>{data.Salary}</td>
+                                            <td>
+                                                <div className='text-center'>
+                                                    <Link to={`/users-view/${data.id}`} type="button" className="btn btn-warning m-1">View</Link>
+                                                    <Link to={`/users-edit/${data.id}`} type="button" className="btn btn-primary m-1">Edit</Link>
+                                                    <button type="button" className="btn btn-danger m-1" onClick={() => deleteUser(data.id)}>Delete</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    })
+                                }
                             </tbody>
                         </table>
                     </div>
